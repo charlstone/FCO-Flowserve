@@ -1,17 +1,89 @@
 ﻿var globalKendoObj;
 $(document).ready(function () {
 
-    FCO = [{
-        FCOID: 1,
-        WeekDate: "02/02/2016",
-        SiteID: "14",
-        IDOG: "5",
-        IDRegion: "6",
-        Total: 18.0000
-    }];
-    //var text = [{ "IDSite": 0, "SiteName": "", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" }, { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas" }];
-    //var userPermision = text;
-    var userPermision = JSON.parse($(".hdnSites").text());
+    FCO = [
+        {
+            FCOID: 1,
+            WeekDate: "02/02/2016",
+            SiteID: "14",
+            IDOG: "5",
+            IDRegion: "6",
+            ID: "14|5|6",
+            Total: 18.0000
+        },
+        {
+            FCOID: 2,
+            WeekDate: "02/02/2016",
+            SiteID: "10",
+            IDOG: "14",
+            IDRegion: "16",
+            ID: "10|14|16",
+            Total: 20.0000
+        }//,
+        //{
+        //    FCOID: 3,
+        //    WeekDate: "02/02/2016",
+        //    SiteID: "10",
+        //    IDOG: "15",
+        //    IDRegion: "0",
+        //    ID: "10|15|0",
+        //    Total: 21.0000
+        //}
+    ];
+    var text =
+            [
+                { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "", "ID": "4|15|0" },
+                { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "", "ID": "0|15|0" },
+                { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas","ID":"10|14|16"  },
+                { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test","ID":"13|13|13"  }
+            ];
+    var userPermision = text;
+
+    function mergeFCOwithPermission(permissions) {
+        var iPermission = -1;
+        var obj;
+        var arrayObj = [];
+        for (var i = 0; i < permissions.length; i++) {
+            obj = {};
+            if (permissions[i].IDSite > 0) {
+                iPermission = findIdInArray(FCO, permissions[i].ID);
+                if (iPermission > -1) {
+                    obj.FCOID = FCO[iPermission].FCOID;
+                    obj.WeekDate = FCO[iPermission].WeekDate;
+                    obj.SiteID = FCO[iPermission].SiteID;
+                    obj.IDOG = FCO[iPermission].IDOG;
+                    obj.IDRegion = FCO[iPermission].IDRegion;
+                    obj.ID = FCO[iPermission].ID;
+                    obj.Total = FCO[iPermission].Total;
+                }
+                else {
+                    obj.FCOID = 0;
+                    obj.WeekDate = setFridayInWeek();
+                    obj.SiteID = permissions[i].IDSite;
+                    obj.IDOG = permissions[i].IDOG;
+                    obj.IDRegion = permissions[i].IDRegion;
+                    obj.ID = permissions[i].ID;
+                    //obj.Total = 0
+                }
+                arrayObj.push(obj);
+            }
+        }
+        return arrayObj;
+    };
+
+    function findIdInArray(array, id,regionID) {
+        var index=-1
+        for (var iArray = 0; iArray < array.length; iArray++) {            
+            if (array[iArray].ID === id) {
+                index = iArray;
+                break;
+            }
+        }
+        return index;
+    }
+
+    FCO= mergeFCOwithPermission(userPermision);
+    //var userPermision = JSON.parse($(".hdnSites").text());
 
     var siteLoad = [];
 
@@ -95,7 +167,7 @@ $(document).ready(function () {
                     id: "FCOID",
                     fields: {
                         FCOID: { editable: false, nullable: true },
-                        SiteID: { field: "SiteID", type: "string", defaultValue: siteLoad[0].value },
+                        ID: { field: "ID", type: "string", defaultValue: siteLoad[0].value,validation: { required: true, min: 0 }, editable: false, nullable: false },
                         WeekDate: { type: "date", defaultValue: setFridayInWeek(),
                             validation: {
                                 required: true,
@@ -117,7 +189,8 @@ $(document).ready(function () {
                                     }
                                     return true;
                                 }
-                            }
+                            },
+                            editable:false
                         },
                         Total: { type: "number", validation: { required: true, min: 1 } }
                     }
@@ -130,7 +203,7 @@ $(document).ready(function () {
             pageable: true,
             toolbar: ["create"],
             columns: [
-            { field: "SiteID", width: "200px", values: siteLoad, title: "Site Name" },
+            { field: "ID", width: "200px", values: siteLoad, title: "Site Name" },
             { field: "WeekDate", width: "200px", title: "Week Ending", format: "{0:MM/dd/yyyy}", },
             { field: "Total",width: "200px", title: "Total On-Desk + Booked" },
                 { command: ["edit"], title: "&nbsp;", width: "200px" }
