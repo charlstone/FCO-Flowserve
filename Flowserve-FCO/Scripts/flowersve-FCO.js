@@ -19,25 +19,22 @@ $(document).ready(function () {
             IDRegion: "16",
             ID: "10|14|16",
             Total: 20.0000
-        }//,
-        //{
-        //    FCOID: 3,
-        //    WeekDate: "02/02/2016",
-        //    SiteID: "10",
-        //    IDOG: "15",
-        //    IDRegion: "0",
-        //    ID: "10|15|0",
-        //    Total: 21.0000
-        //}
+        }
     ];
+
+
+
+    //local testing values 
     var text =
             [
                 { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "", "ID": "4|15|0" },
                 { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "", "ID": "0|15|0" },
-                { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas","ID":"10|14|16"  },
-                { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test","ID":"13|13|13"  }
+                { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "10|14|16" },
+                { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "13|13|13" }
             ];
     var userPermision = text;
+    //SHAREPOINT, DEPLOY VERSION
+    //var userPermision = JSON.parse($(".hdnSites").text());
 
     function mergeFCOwithPermission(permissions) {
         var iPermission = -1;
@@ -71,9 +68,9 @@ $(document).ready(function () {
         return arrayObj;
     };
 
-    function findIdInArray(array, id,regionID) {
-        var index=-1
-        for (var iArray = 0; iArray < array.length; iArray++) {            
+    function findIdInArray(array, id, regionID) {
+        var index = -1
+        for (var iArray = 0; iArray < array.length; iArray++) {
             if (array[iArray].ID === id) {
                 index = iArray;
                 break;
@@ -82,8 +79,7 @@ $(document).ready(function () {
         return index;
     }
 
-    FCO= mergeFCOwithPermission(userPermision);
-    //var userPermision = JSON.parse($(".hdnSites").text());
+    FCO = mergeFCOwithPermission(userPermision);
 
     var siteLoad = [];
 
@@ -125,13 +121,11 @@ $(document).ready(function () {
                 },
                 create: function (e) {
                     // assign an ID to the new item
-                    debugger;
-                    e.data.FCOID = sampleDataNextID++;
+                    //e.data.FCOID = sampleDataNextID++;
                     // save data item to the original datasource
-                    
+
                     //save to sharepoint
-                    globalKendoObj = e;
-                    createListItem(e);
+
                     ///////////
 
                     // on success
@@ -141,9 +135,16 @@ $(document).ready(function () {
                 },
                 update: function (e) {
                     // locate item in original datasource and update it
-                    FCO[getIndexById(e.data.FCOID)] = e.data;
+                    if (e.data.FCOID == 0) {
+                        globalKendoObj = e;
+                        createListItem(e);
+                    }
+                    else {
+                        updateListItem(e);
+                    }
+                    //FCO[getIndexById(e.data.FCOID)] = e.data;
                     // on success
-                    e.success();
+                    //e.success();
                     // on failure
                     //e.error("XHR response", "status code", "error message");
                 },
@@ -167,8 +168,9 @@ $(document).ready(function () {
                     id: "FCOID",
                     fields: {
                         FCOID: { editable: false, nullable: true },
-                        ID: { field: "ID", type: "string", defaultValue: siteLoad[0].value,validation: { required: true, min: 0 }, editable: false, nullable: false },
-                        WeekDate: { type: "date", defaultValue: setFridayInWeek(),
+                        ID: { field: "ID", type: "string", defaultValue: siteLoad[0].value, validation: { required: true, min: 0 }, editable: false, nullable: false },
+                        WeekDate: {
+                            type: "date", defaultValue: setFridayInWeek(),
                             validation: {
                                 required: true,
                                 weekdatevalidation: function (input) {
@@ -190,7 +192,7 @@ $(document).ready(function () {
                                     return true;
                                 }
                             },
-                            editable:false
+                            editable: false
                         },
                         Total: { type: "number", validation: { required: true, min: 1 } }
                     }
@@ -205,13 +207,13 @@ $(document).ready(function () {
             columns: [
             { field: "ID", width: "200px", values: siteLoad, title: "Site Name" },
             { field: "WeekDate", width: "200px", title: "Week Ending", format: "{0:MM/dd/yyyy}", },
-            { field: "Total",width: "200px", title: "Total On-Desk + Booked" },
+            { field: "Total", width: "200px", title: "Total On-Desk + Booked" },
                 { command: ["edit"], title: "&nbsp;", width: "200px" }
             ],
-            editable:"inline"
+            editable: "inline"
         });
     });
-    
+
 });
 
 function setFridayInWeek() {
@@ -219,23 +221,30 @@ function setFridayInWeek() {
     var dayOfTheMonth = todayDate.getDate();
     var dayOfTheWeek = todayDate.getDay();
 
-        switch (dayOfTheWeek) {
-            case 0:
-                todayDate.setDate(dayOfTheMonth - 2).toLocaleString();
+    switch (dayOfTheWeek) {
+        case 0:
+            todayDate.setDate(dayOfTheMonth + 5).toLocaleString();
+            return todayDate.toLocaleDateString();
+            break;
+        case 5:
+            if (todayDate.getHours() >= 12) {
                 return todayDate.toLocaleDateString();
-                break;
-            case 5:
-                return todayDate.toLocaleDateString();
-                break;
-            case 6:
-                todayDate.setDate(dayOfTheMonth - 1).toLocaleString();
-                return todayDate.toLocaleDateString();
-                break;
-            default:
-                todayDate.setDate(dayOfTheMonth + (5 - dayOfTheWeek)).toLocaleString();
-                return todayDate.toLocaleDateString();
+            }
+            else {
 
-        
+                todayDate.setDate(dayOfTheMonth + 7).toLocaleString();
+                return todayDate.toLocaleDateString();
+            }
+            break;
+        case 6:
+            todayDate.setDate(dayOfTheMonth + 6).toLocaleString();
+            return todayDate.toLocaleDateString();
+            break;
+        default:
+            todayDate.setDate(dayOfTheMonth + (5 - dayOfTheWeek)).toLocaleString();
+            return todayDate.toLocaleDateString();
+
+
 
     }
 }
@@ -252,10 +261,16 @@ function retrieveAllListProperties() {
 }
 
 function onQuerySucceeded() {
-    globalKendoObj.data.FCOID = parseInt(oListItem.get_id());
-    FCO.push(globalKendoObj.data);
-    alert('Item with SP Id: ' + oListItem.get_id()+ " has ben created");
-    globalKendoObj.success(globalKendoObj.data);
+    if (globalKendoObj.data.FCOID == 0) {
+        //set in this section the ID on the kendolist/grid that you will get from SP
+        globalKendoObj.data.FCOID = parseInt(oListItem.get_id());
+        FCO.push(globalKendoObj.data);
+        alert('Item with SP Id: ' + oListItem.get_id() + " has ben created");
+        globalKendoObj.success(globalKendoObj.data);
+    }
+    else {
+        alert('Item updated!');
+    }
 }
 
 function onQueryFailed(sender, args) {
@@ -273,7 +288,7 @@ function createListItem(ObjFCO) {
 
     //TODO NOMBRAR CAMPOS.
     //oListItem.set_item('', reportJson.CountryName);
-    oListItem.set_item('Title', "probando");
+    oListItem.set_item('Title', "");
     oListItem.set_item('Site', parseInt(ObjFCO.data.SiteID.split("|")[0]));
     oListItem.set_item('Operating_x0020_Group', parseInt(ObjFCO.data.SiteID.split("|")[1]));
     oListItem.set_item('Region', parseInt(ObjFCO.data.SiteID.split("|")[2]));
@@ -286,6 +301,25 @@ function createListItem(ObjFCO) {
 
     clientContext.executeQueryAsync(Function.createDelegate(this, this.onQuerySucceeded), Function.createDelegate(this, this.onQueryFailed));
 
+}
+
+function updateListItem(ObjFCO) {
+
+    var clientContext = new SP.ClientContext(siteUrl);
+    var oList = clientContext.get_web().get_lists().getByTitle('FCO Bookings');
+
+    this.oListItem = oList.getItemById(ObjFCO.data.FCOID);
+
+    oListItem.set_item('Title', '');
+    oListItem.set_item('Site', parseInt(ObjFCO.data.SiteID.split("|")[0]));
+    oListItem.set_item('Operating_x0020_Group', parseInt(ObjFCO.data.SiteID.split("|")[1]));
+    oListItem.set_item('Region', parseInt(ObjFCO.data.SiteID.split("|")[2]));
+    oListItem.set_item('Week', ObjFCO.data.WeekDate);
+    oListItem.set_item('Total', ObjFCO.data.Total);
+
+    oListItem.update();
+
+    clientContext.executeQueryAsync(Function.createDelegate(this, this.onQuerySucceeded), Function.createDelegate(this, this.onQueryFailed));
 }
 
 function dateTimeEditor(container, options) {
