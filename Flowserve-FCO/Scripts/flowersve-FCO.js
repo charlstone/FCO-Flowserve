@@ -1,40 +1,42 @@
 ﻿var globalKendoObj;
+var FCO;
 $(document).ready(function () {
 
-    FCO = [
-        {
-            FCOID: 1,
-            WeekDate: "02/02/2016",
-            SiteID: "14",
-            IDOG: "5",
-            IDRegion: "6",
-            ID: "14|5|6",
-            Total: 18.0000
-        },
-        {
-            FCOID: 2,
-            WeekDate: "02/02/2016",
-            SiteID: "10",
-            IDOG: "14",
-            IDRegion: "16",
-            ID: "10|14|16",
-            Total: 20.0000
-        }
-    ];
+    //FCO = [
+    //    {
+    //        FCOID: 1,
+    //        WeekDate: "02/02/2016",
+    //        SiteID: "14",
+    //        IDOG: "5",
+    //        IDRegion: "6",
+    //        ID: "14|5|6",
+    //        Total: 18.0000
+    //    },
+    //    {
+    //        FCOID: 2,
+    //        WeekDate: "02/02/2016",
+    //        SiteID: "10",
+    //        IDOG: "14",
+    //        IDRegion: "16",
+    //        ID: "10|14|16",
+    //        Total: 20.0000
+    //    }
+    //];
 
 
 
-    //local testing values 
-    var text =
-            [
-                { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "", "ID": "4|15|0" },
-                { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "", "ID": "0|15|0" },
-                { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "10|14|16" },
-                { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "13|13|13" }
-            ];
-    var userPermision = text;
+    ////local testing values 
+    //var text =
+    //        [
+    //            { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": ""},
+    //            { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": ""},
+    //            { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "10|14|16" },
+    //            { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "13|13|13" }
+    //        ];
+    //var userPermision = text;
     //SHAREPOINT, DEPLOY VERSION
-    //var userPermision = JSON.parse($(".hdnSites").text());
+    FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
+    var userPermision = JSON.parse($(".hdnSites").text());
 
     function mergeFCOwithPermission(permissions) {
         var iPermission = -1;
@@ -60,7 +62,6 @@ $(document).ready(function () {
                     obj.IDOG = permissions[i].IDOG;
                     obj.IDRegion = permissions[i].IDRegion;
                     obj.ID = permissions[i].ID;
-                    //obj.Total = 0
                 }
                 arrayObj.push(obj);
             }
@@ -79,11 +80,10 @@ $(document).ready(function () {
         return index;
     }
 
-    FCO = mergeFCOwithPermission(userPermision);
-
     var siteLoad = [];
 
     $(userPermision).each(function () {
+        this.ID = (this.IDSite).toString() + "|" + (this.IDOG).toString() + "|" + (this.IDRegion).toString();
         if (this.IDSite > 0) {
             var item = {};
             item.value = (this.IDSite).toString() + "|" + (this.IDOG).toString() + "|" + (this.IDRegion).toString();
@@ -91,6 +91,10 @@ $(document).ready(function () {
             siteLoad.push(item);
         };
     });
+
+    FCO = mergeFCOwithPermission(userPermision);
+
+
 
     // custom logic start
 
@@ -140,6 +144,7 @@ $(document).ready(function () {
                         createListItem(e);
                     }
                     else {
+                        globalKendoObj = e;
                         updateListItem(e);
                     }
                     //FCO[getIndexById(e.data.FCOID)] = e.data;
@@ -203,7 +208,6 @@ $(document).ready(function () {
         $("#grid").kendoGrid({
             dataSource: dataSource,
             pageable: true,
-            toolbar: ["create"],
             columns: [
             { field: "ID", width: "200px", values: siteLoad, title: "Site Name" },
             { field: "WeekDate", width: "200px", title: "Week Ending", format: "{0:MM/dd/yyyy}", },
@@ -251,7 +255,7 @@ function setFridayInWeek() {
 
 function retrieveAllListProperties() {
 
-    var clientContext = new SP.ClientContext(siteUrl);
+    var clientContext = new SP.ClientContext();
     var oWebsite = clientContext.get_web();
     this.collList = oWebsite.get_lists();
 
@@ -270,6 +274,7 @@ function onQuerySucceeded() {
     }
     else {
         alert('Item updated!');
+        globalKendoObj.success(globalKendoObj.data);
     }
 }
 
@@ -288,10 +293,10 @@ function createListItem(ObjFCO) {
 
     //TODO NOMBRAR CAMPOS.
     //oListItem.set_item('', reportJson.CountryName);
-    oListItem.set_item('Title', "");
-    oListItem.set_item('Site', parseInt(ObjFCO.data.SiteID.split("|")[0]));
-    oListItem.set_item('Operating_x0020_Group', parseInt(ObjFCO.data.SiteID.split("|")[1]));
-    oListItem.set_item('Region', parseInt(ObjFCO.data.SiteID.split("|")[2]));
+    oListItem.set_item('Title', "Saved");
+    oListItem.set_item('Site', parseInt(ObjFCO.data.ID.split("|")[0]));
+    oListItem.set_item('Operating_x0020_Group', parseInt(ObjFCO.data.ID.split("|")[1]));
+    oListItem.set_item('Region', parseInt(ObjFCO.data.ID.split("|")[2]));
     oListItem.set_item('Week', ObjFCO.data.WeekDate);
     oListItem.set_item('Total', ObjFCO.data.Total);
 
@@ -305,16 +310,11 @@ function createListItem(ObjFCO) {
 
 function updateListItem(ObjFCO) {
 
-    var clientContext = new SP.ClientContext(siteUrl);
+    var clientContext = new SP.ClientContext();
     var oList = clientContext.get_web().get_lists().getByTitle('FCO Bookings');
 
     this.oListItem = oList.getItemById(ObjFCO.data.FCOID);
 
-    oListItem.set_item('Title', '');
-    oListItem.set_item('Site', parseInt(ObjFCO.data.SiteID.split("|")[0]));
-    oListItem.set_item('Operating_x0020_Group', parseInt(ObjFCO.data.SiteID.split("|")[1]));
-    oListItem.set_item('Region', parseInt(ObjFCO.data.SiteID.split("|")[2]));
-    oListItem.set_item('Week', ObjFCO.data.WeekDate);
     oListItem.set_item('Total', ObjFCO.data.Total);
 
     oListItem.update();
