@@ -1,5 +1,10 @@
 ﻿var globalKendoObj;
 var FCO;
+var userPermision;
+var superUser = false;
+var fields = [];
+var columns = [];
+var siteLoad = [];
 $(document).ready(function () {
 
     //FCO = [
@@ -8,7 +13,9 @@ $(document).ready(function () {
     //        WeekDate: "02/02/2016",
     //        SiteID: "14",
     //        IDOG: "5",
+    //        OGName: "OG China",
     //        IDRegion: "6",
+    //        RegionName: "Region Americas",
     //        ID: "14|5|6",
     //        Total: 18.0000
     //    },
@@ -17,26 +24,25 @@ $(document).ready(function () {
     //        WeekDate: "02/02/2016",
     //        SiteID: "10",
     //        IDOG: "14",
+    //        OGName: "OG Process",
     //        IDRegion: "16",
+    //        RegionName: "Region Test",
     //        ID: "10|14|16",
     //        Total: 20.0000
     //    }
     //];
 
-
-
     ////local testing values 
-    //var text =
-    //        [
-    //            { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": ""},
-    //            { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": ""},
+            
+    //userPermision = [
+    //            { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" },
+    //            { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" },
     //            { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "10|14|16" },
     //            { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "13|13|13" }
-    //        ];
-    //var userPermision = text;
+    //];
     //SHAREPOINT, DEPLOY VERSION
     FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
-    var userPermision = JSON.parse($(".hdnSites").text());
+    userPermision = JSON.parse($(".hdnSites").text());
 
     function mergeFCOwithPermission(permissions) {
         var iPermission = -1;
@@ -51,7 +57,9 @@ $(document).ready(function () {
                     obj.WeekDate = FCO[iPermission].WeekDate;
                     obj.SiteID = FCO[iPermission].SiteID;
                     obj.IDOG = FCO[iPermission].IDOG;
+                    obj.OGName = FCO[iPermission].OGName;
                     obj.IDRegion = FCO[iPermission].IDRegion;
+                    obj.RegionName = FCO[iPermission].RegionName;
                     obj.ID = FCO[iPermission].ID;
                     obj.Total = FCO[iPermission].Total;
                 }
@@ -60,7 +68,9 @@ $(document).ready(function () {
                     obj.WeekDate = setFridayInWeek();
                     obj.SiteID = permissions[i].IDSite;
                     obj.IDOG = permissions[i].IDOG;
+                    obj.OGName = permissions[i].OGName;
                     obj.IDRegion = permissions[i].IDRegion;
+                    obj.RegionName = permissions[i].RegionName;
                     obj.ID = permissions[i].ID;
                 }
                 arrayObj.push(obj);
@@ -79,9 +89,7 @@ $(document).ready(function () {
         }
         return index;
     }
-
-    var siteLoad = [];
-
+    
     $(userPermision).each(function () {
         this.ID = (this.IDSite).toString() + "|" + (this.IDOG).toString() + "|" + (this.IDRegion).toString();
         if (this.IDSite > 0) {
@@ -94,7 +102,100 @@ $(document).ready(function () {
 
     FCO = mergeFCOwithPermission(userPermision);
 
-
+    if (userPermision[0].IsAdmin)
+    {
+        fields = {
+            model: {
+                id: "FCOID",
+                fields: {
+                    FCOID: { editable: false, nullable: true },
+                    OGName: { field: "OGName", type: "string", editable: false},
+                    RegionName: { field: "RegionName", type: "string",editable: false },
+                    ID: { field: "ID", type: "string", defaultValue: siteLoad[0].value, validation: { required: true, min: 0 }, editable: false, nullable: false },
+                    WeekDate: {
+                        type: "date", defaultValue: setFridayInWeek(),
+                        validation: {
+                            required: true,
+                            weekdatevalidation: function (input) {
+                                if (input.is("[name='WeekDate']") && input.val() != "") {
+                                    var inputDate = new Date(input.val());
+                                    var todayDate = new Date();
+                                    var dayOfTheWeek = new Date().getDay();
+                                    if (dayOfTheWeek != 5) {
+                                        input.attr("data-weekdatevalidation-msg", "User is not allowed to change date");
+                                        input.val(setFridayInWeek());
+                                        return true;
+                                    }
+                                    else {
+                                        input.val(setFridayInWeek());
+                                        return true;
+                                    }
+                                    return true;
+                                }
+                                return true;
+                            }
+                        },
+                        editable: false
+                    },
+                    Total: { type: "number", validation: { required: true, min: 1 } }
+                }
+            }
+        };
+        columns = [
+            { field: "RegionName", width: "200px", title: "Region" },
+            { field: "OGName", width: "200px", title: "Operation Group" },
+            { field: "ID", width: "200px", values: siteLoad, title: "Site Name" },
+            { field: "WeekDate", width: "200px", title: "Week Ending", format: "{0:MM/dd/yyyy}" },
+            { field: "Total", width: "200px", title: "Total On-Desk + Booked" },
+                { command: ["edit"], title: "&nbsp;", width: "200px" }
+        ];
+    }
+    else
+    {
+        fields = {
+            model: {
+                id: "FCOID",
+                fields: {
+                    FCOID: { editable: false, nullable: true },
+                    ID: { field: "ID", type: "string", defaultValue: siteLoad[0].value, validation: { required: true, min: 0 }, editable: false, nullable: false },
+                    WeekDate: {
+                        type: "date", defaultValue: setFridayInWeek(),
+                        validation: {
+                            required: true,
+                            weekdatevalidation: function (input) {
+                                if (input.is("[name='WeekDate']") && input.val() != "") {
+                                    var inputDate = new Date(input.val());
+                                    var todayDate = new Date();
+                                    var dayOfTheWeek = new Date().getDay();
+                                    if (dayOfTheWeek != 5) {
+                                        input.attr("data-weekdatevalidation-msg", "User is not allowed to change date");
+                                        input.val(setFridayInWeek());
+                                        return true;
+                                    }
+                                    else {
+                                        input.val(setFridayInWeek());
+                                        return true;
+                                    }
+                                    return true;
+                                }
+                                return true;
+                            }
+                        },
+                        editable: false
+                    },
+                    Total: { type: "number", validation: { required: true, min: 1 } }
+                }
+            }
+        };
+        columns = [
+            { field: "ID", width: "200px", values: siteLoad, title: "Site Name" },
+            { field: "WeekDate", width: "200px", title: "Week Ending", format: "{0:MM/dd/yyyy}" },
+            { field: "Total", width: "200px", title: "Total On-Desk + Booked" },
+                { command: ["edit"], title: "&nbsp;", width: "200px" }
+        ];
+    }
+        
+        
 
     // custom logic start
 
@@ -120,22 +221,8 @@ $(document).ready(function () {
                 read: function (e) {
                     // on success
                     e.success(FCO);
-                    // on failure
-                    //e.error("XHR response", "status code", "error message");
                 },
                 create: function (e) {
-                    // assign an ID to the new item
-                    //e.data.FCOID = sampleDataNextID++;
-                    // save data item to the original datasource
-
-                    //save to sharepoint
-
-                    ///////////
-
-                    // on success
-                    //e.success(e.data);
-                    // on failure
-                    //e.error("XHR response", "status code", "error message");
                 },
                 update: function (e) {
                     // locate item in original datasource and update it
@@ -147,11 +234,6 @@ $(document).ready(function () {
                         globalKendoObj = e;
                         updateListItem(e);
                     }
-                    //FCO[getIndexById(e.data.FCOID)] = e.data;
-                    // on success
-                    //e.success();
-                    // on failure
-                    //e.error("XHR response", "status code", "error message");
                 },
                 destroy: function (e) {
                     // locate item in original datasource and remove it
@@ -159,61 +241,23 @@ $(document).ready(function () {
                     // on success
                     e.success();
                     // on failure
-                    //e.error("XHR response", "status code", "error message");
                 }
             },
             error: function (e) {
-                // handle data operation error
                 alert("Status: " + e.status + "; Error message: " + e.errorThrown);
             },
             pageSize: 10,
             batch: false,
-            schema: {
-                model: {
-                    id: "FCOID",
-                    fields: {
-                        FCOID: { editable: false, nullable: true },
-                        ID: { field: "ID", type: "string", defaultValue: siteLoad[0].value, validation: { required: true, min: 0 }, editable: false, nullable: false },
-                        WeekDate: {
-                            type: "date", defaultValue: setFridayInWeek(),
-                            validation: {
-                                required: true,
-                                weekdatevalidation: function (input) {
-                                    if (input.is("[name='WeekDate']") && input.val() != "") {
-                                        var inputDate = new Date(input.val());
-                                        var todayDate = new Date();
-                                        var dayOfTheWeek = new Date().getDay();
-                                        if (dayOfTheWeek != 5) {
-                                            input.attr("data-weekdatevalidation-msg", "User is not allowed to change date");
-                                            input.val(setFridayInWeek());
-                                            return true;
-                                        }
-                                        else {
-                                            input.val(setFridayInWeek());
-                                            return true;
-                                        }
-                                        return true;
-                                    }
-                                    return true;
-                                }
-                            },
-                            editable: false
-                        },
-                        Total: { type: "number", validation: { required: true, min: 1 } }
-                    }
-                }
-            },
+            schema: fields,
         });
 
         $("#grid").kendoGrid({
             dataSource: dataSource,
             pageable: true,
-            columns: [
-            { field: "ID", width: "200px", values: siteLoad, title: "Site Name" },
-            { field: "WeekDate", width: "200px", title: "Week Ending", format: "{0:MM/dd/yyyy}", },
-            { field: "Total", width: "200px", title: "Total On-Desk + Booked" },
-                { command: ["edit"], title: "&nbsp;", width: "200px" }
-            ],
+            columns: columns,
+            filterable: {
+                extra: false
+            },
             editable: "inline"
         });
     });
