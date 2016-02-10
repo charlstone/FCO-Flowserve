@@ -7,42 +7,42 @@ var columns = [];
 var siteLoad = [];
 $(document).ready(function () {
 
-    //FCO = [
-    //    {
-    //        FCOID: 1,
-    //        WeekDate: "02/02/2016",
-    //        SiteID: "14",
-    //        IDOG: "5",
-    //        OGName: "OG China",
-    //        IDRegion: "6",
-    //        RegionName: "Region Americas",
-    //        ID: "14|5|6",
-    //        Total: 18.0000
-    //    },
-    //    {
-    //        FCOID: 2,
-    //        WeekDate: "02/02/2016",
-    //        SiteID: "10",
-    //        IDOG: "14",
-    //        OGName: "OG Process",
-    //        IDRegion: "16",
-    //        RegionName: "Region Test",
-    //        ID: "10|14|16",
-    //        Total: 20.0000
-    //    }
-    //];
+    FCO = [
+        {
+            FCOID: 1,
+            WeekDate: "02/02/2016",
+            SiteID: "14",
+            IDOG: "5",
+            OGName: "OG China",
+            IDRegion: "6",
+            RegionName: "Region Americas",
+            ID: "14|5|6",
+            Total: 18.0000
+        },
+        {
+            FCOID: 2,
+            WeekDate: "02/02/2016",
+            SiteID: "10",
+            IDOG: "14",
+            OGName: "OG Process",
+            IDRegion: "16",
+            RegionName: "Region Test",
+            ID: "10|14|16",
+            Total: 20.0000
+        }
+    ];
 
-    ////local testing values 
+    //local testing values 
             
-    //userPermision = [
-    //            { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" },
-    //            { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" },
-    //            { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "10|14|16" },
-    //            { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "13|13|13" }
-    //];
-    //SHAREPOINT, DEPLOY VERSION
-    FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
-    userPermision = JSON.parse($(".hdnSites").text());
+    userPermision = [
+                { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" },
+                { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" },
+                { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "10|14|16" },
+                { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "13|13|13" }
+    ];
+    ////SHAREPOINT, DEPLOY VERSION
+    //FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
+    //userPermision = JSON.parse($(".hdnSites").text());
 
     function mergeFCOwithPermission(permissions) {
         var iPermission = -1;
@@ -139,6 +139,10 @@ $(document).ready(function () {
                     },
                     Total: { type: "number", validation: { required: true, min: 1 } }
                 }
+            },
+            data: function (e) {
+                debugger;
+                return JSON.parse(e);
             }
         };
         columns = [
@@ -185,6 +189,10 @@ $(document).ready(function () {
                     },
                     Total: { type: "number", validation: { required: true, min: 1 } }
                 }
+            },
+            data: function (e) {
+                debugger;
+                return e;
             }
         };
         columns = [
@@ -261,6 +269,8 @@ $(document).ready(function () {
             editable: "inline"
         });
     });
+
+
 
 });
 
@@ -370,4 +380,77 @@ function dateTimeEditor(container, options) {
     $('<input data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" data-format="' + options.format + '"/>')
             .appendTo(container)
             .kendoDateTimePicker({});
+}
+
+function applyFilter(filterField, filterValue) {
+
+    var gridData = $("#grid").data("kendoGrid");
+
+    var currFilterObj = gridData.dataSource.filter();
+
+    var currentFilters = currFilterObj ? currFilterObj.filters : [];
+
+    if (currentFilters && currentFilters.length > 0) {
+        for (var i = 0; i < currentFilters.length; i++) {
+            if (currentFilters[i].field == filterField) {
+                currentFilters.splice(i, 1);
+                break;
+            }
+        }
+    }
+    var dataType = jQuery.type(filterValue);
+    if (dataType != "boolean") {
+        var parts = filterValue.split('/');
+        //please put attention to the month (parts[1]), Javascript counts months from 0:
+        // January - 0, February - 1, etc
+        var mydate = new Date(parts[2], parts[1] - 1, parts[0]);
+
+        if (mydate == "Invalid Date" || dataType == "boolean") {
+            if (filterValue != "0") {
+                if (!isNaN(filterValue)) {
+                    var numberToSearch = parseInt(filterValue)
+                    currentFilters.push({
+                        field: filterField,
+                        operator: "eq",
+                        value: numberToSearch
+                    });
+                }
+                else {
+                    currentFilters.push({
+                        field: filterField,
+                        operator: "contains",
+                        value: filterValue
+                    });
+                }
+            }
+        }
+        else {
+            currentFilters.push({
+                field: filterField,
+                operator: "eq",
+                value: mydate
+            });
+        }
+    }
+    else {
+        currentFilters.push({
+            field: filterField,
+            operator: "eq",
+            value: filterValue
+        });
+    }
+
+
+
+    gridData.dataSource.filter({
+        logic: "and",
+        filters: currentFilters
+    });
+
+}
+
+function clearFilters() {
+    var gridData = $("#grid").data("kendoGrid");
+    gridData.dataSource.filter({});
+    $("select").val(0);
 }
