@@ -43,6 +43,7 @@ $(document).ready(function () {
                 { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "10|14|16" },
                 { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "13|13|13" }
     ];
+
     //SHAREPOINT, DEPLOY VERSION
     //FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
     //userPermision = JSON.parse($(".hdnSites").text());
@@ -363,8 +364,18 @@ $(document).ready(function () {
 
 });
 
+function returnDateWithEspecificTimeZone(timeZoneDiference) {
+    d = new Date();
+    localTime = d.getTime();
+    localOffset = d.getTimezoneOffset() * 60000;
+    utc = localTime + localOffset;
+    city = utc + (3600000 * timeZoneDiference);
+    nd = new Date(city);
+    return nd;
+}
+
 function setFridayInWeek() {
-    var todayDate = new Date;
+    var todayDate =  returnDateWithEspecificTimeZone(-6);
     var dayOfTheMonth = todayDate.getDate();
     var dayOfTheWeek = todayDate.getDay();
 
@@ -374,7 +385,7 @@ function setFridayInWeek() {
             return todayDate.toLocaleDateString();
             break;
         case 5:
-            if (todayDate.getHours() >= 12) {
+            if (todayDate.getHours() > 23 && todayDate.getMinutes()>59) {
                 todayDate.setDate(dayOfTheMonth + 7).toLocaleString();
                 return todayDate.toLocaleDateString();
             }
