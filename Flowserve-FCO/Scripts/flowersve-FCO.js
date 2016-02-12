@@ -5,33 +5,35 @@ var superUser = false;
 var fields = [];
 var columns = [];
 var siteLoad = [];
+var sourceSites = [];
+var sourceDates = [];
 $(document).ready(function () {
 
     FCO = [
-        {
-            FCOID: 1,
-            WeekDate: "02/02/2016",
-            SiteID: "14",
-            SiteName: "Site 14",
-            IDOG: "5",
-            OGName: "OG China",
-            IDRegion: "6",
-            RegionName: "Region Americas",
-            ID: "14|5|6",
-            Total: 18.0000
-        },
-        {
-            FCOID: 2,
-            WeekDate: "02/02/2016",
-            SiteID: "10",
-            SiteName: "Site 10",
-            IDOG: "14",
-            OGName: "OG Process",
-            IDRegion: "16",
-            RegionName: "Region Test",
-            ID: "10|14|16",
-            Total: 20.0000
-        }
+       {
+           FCOID: 1,
+           WeekDate: "02/02/2016",
+           SiteID: "14",
+           SiteName: "Site 14",
+           IDOG: "5",
+           OGName: "OG China",
+           IDRegion: "6",
+           RegionName: "Region Americas",
+           ID: "14|5|6",
+           Total: 18.0000
+       },
+       {
+           FCOID: 2,
+           WeekDate: "02/02/2016",
+           SiteID: "10",
+           SiteName: "Site 10",
+           IDOG: "14",
+           OGName: "OG Process",
+           IDRegion: "16",
+           RegionName: "Region Test",
+           ID: "10|14|16",
+           Total: 20.0000
+       }
     ];
 
     //local testing values 
@@ -44,7 +46,7 @@ $(document).ready(function () {
     //SHAREPOINT, DEPLOY VERSION
     //FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
     //userPermision = JSON.parse($(".hdnSites").text());
-    var sourceSites = [];
+
     function createSourceSitesDropDown() {
         var obj;
         for (var iFCO = 0; iFCO < FCO.length; iFCO++) {
@@ -59,8 +61,12 @@ $(document).ready(function () {
         var today = new Date(), friday, day, closest;
 
         if (today.getDay() == 5) {
-            if (today.getHours() < 22) {
-                return today;
+            if (today.getHours() >= 12) {
+                today.setDate(today.getDate() + 7);
+                return ((today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1)) + "/" + (today.getDate() > 9 ? (today.getDate()) : "0" + today.getDate()) + "/" + today.getFullYear();
+            }
+            else {
+                return ((today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1)) + "/" + (today.getDate() > 9 ? (today.getDate()) : "0" + today.getDate()) + "/" + today.getFullYear();
             }
         } else {
             day = today.getDay();
@@ -71,14 +77,13 @@ $(document).ready(function () {
         return ((closest.getMonth() + 1) > 9 ? (closest.getMonth() + 1) : "0" + (closest.getMonth() + 1)) + "/" + (closest.getDate() > 9 ? (closest.getDate()) : "0" + closest.getDate()) + "/" + closest.getFullYear();
     }
 
-    var sourceDates = [];
     function createSourceDatesDropDown() {
         var actualDate = closest_friday();
-        sourceDates.push({"value":actualDate,"text":actualDate});
         var actualYear = parseInt(actualDate.split("/")[2]);
         var actualMonth = parseInt(actualDate.split("/")[0]);
         var actualDay = parseInt(actualDate.split("/")[1]);
 
+        sourceDates.push({ "value": actualDay + "/" + actualMonth + "/" + actualYear, "text": actualDate });
         var x = new Date();
         //set the actual year
         x.setFullYear(actualYear, 01, 01);
@@ -95,7 +100,7 @@ $(document).ready(function () {
             if (actualYear == x.getFullYear()) {
                 if (x.getDay() == 5) {
                     obj = {}
-                    obj.value = ((x.getMonth() + 1) > 9 ? (x.getMonth() + 1) : "0" + (x.getMonth() + 1)) + "/" + ((x.getDate() ) > 9 ? (x.getDate() ) : "0" + (x.getDate() )) + "/" + x.getFullYear();
+                    obj.value = ((x.getDate()) > 9 ? (x.getDate()) : "0" + (x.getDate())) + "/" + ((x.getMonth() + 1) > 9 ? (x.getMonth() + 1) : "0" + (x.getMonth() + 1)) + "/" + x.getFullYear();
                     obj.text = ((x.getMonth() + 1) > 9 ? (x.getMonth() + 1) : "0" + (x.getMonth() + 1)) + "/" + ((x.getDate() ) > 9 ? (x.getDate() ) : "0" + (x.getDate() )) + "/" + x.getFullYear();
 
                     sourceDates.push(obj);
@@ -113,10 +118,23 @@ $(document).ready(function () {
                 break;
             }
         }
+        sourceDates.reverse();
     }
 
     createSourceSitesDropDown();
     createSourceDatesDropDown();
+    setDropDowns();
+
+    $(".WeekDate").change(function () {
+        if($(this).val() == 0)
+        {
+            clearFilters();
+        }
+        else
+        {
+            applyFilter($(this).attr('class'), $(this).val());
+        }
+    });
 
     function mergeFCOwithPermission(permissions) {
         var iPermission = -1;
@@ -174,7 +192,11 @@ $(document).ready(function () {
         };
     });
 
-    FCO = mergeFCOwithPermission(userPermision);
+        if (!userPermision[0].IsAdmin) {
+            FCO = mergeFCOwithPermission(userPermision);
+            $(".filters").hide();
+        }
+
 
     if (userPermision[0].IsAdmin) {
         fields = {
@@ -214,8 +236,7 @@ $(document).ready(function () {
                 }
             },
             data: function (e) {
-                debugger;
-                return JSON.parse(e);
+                return e;
             }
         };
         columns = [
@@ -263,7 +284,6 @@ $(document).ready(function () {
                 }
             },
             data: function (e) {
-                debugger;
                 return e;
             }
         };
@@ -335,9 +355,6 @@ $(document).ready(function () {
             dataSource: dataSource,
             pageable: true,
             columns: columns,
-            filterable: {
-                extra: false
-            },
             editable: "inline"
         });
     });
@@ -358,11 +375,11 @@ function setFridayInWeek() {
             break;
         case 5:
             if (todayDate.getHours() >= 12) {
+                todayDate.setDate(dayOfTheMonth + 7).toLocaleString();
                 return todayDate.toLocaleDateString();
             }
             else {
 
-                todayDate.setDate(dayOfTheMonth + 7).toLocaleString();
                 return todayDate.toLocaleDateString();
             }
             break;
@@ -395,11 +412,11 @@ function onQuerySucceeded() {
         //set in this section the ID on the kendolist/grid that you will get from SP
         globalKendoObj.data.FCOID = parseInt(oListItem.get_id());
         FCO.push(globalKendoObj.data);
-        alert('Item with SP Id: ' + oListItem.get_id() + " has ben created");
+        //alert('Item with SP Id: ' + oListItem.get_id() + " has ben created");
         globalKendoObj.success(globalKendoObj.data);
     }
     else {
-        alert('Item updated!');
+        //alert('Item updated!');
         globalKendoObj.success(globalKendoObj.data);
     }
 }
@@ -452,6 +469,17 @@ function dateTimeEditor(container, options) {
     $('<input data-text-field="' + options.field + '" data-value-field="' + options.field + '" data-bind="value:' + options.field + '" data-format="' + options.format + '"/>')
             .appendTo(container)
             .kendoDateTimePicker({});
+}
+
+function setDropDowns() {
+    var datesList = $(".WeekDate");
+    var sitesList = $(".ID");
+    $(sourceDates).each(function (index,item) {
+        datesList.append(new Option(item.text, item.value));
+    });
+    $(sourceSites).each(function (index, item) {
+        sitesList.append(new Option(item.text, item.value));
+    });
 }
 
 function applyFilter(filterField, filterValue) {

@@ -586,6 +586,18 @@ tr.pager td {
     padding: 0 0.25em 0 0;
 }
 
+.criteria {
+    margin-bottom: 2%;
+    margin-top: 1%;
+    color: black;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.filters {
+    margin-bottom: 1%;
+}
+
 
 /********************
 *   Mobile Styles   *

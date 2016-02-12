@@ -17,17 +17,17 @@
 <body>  
 
     <div>
-        <div>
+        <div class="criteria">
             <span>Criteria:</span><br />
             <span>Customer Bookings only - No Intercompany</span><br />
             <span>US Dollars based on current month exchange rate</span><br />
             <span>Must be Month to Date (MTD) Actual number in whole dollars</span><br />
         </div>
-        <div>
-            <span>Site:</span><br />
-            <select class="site"></select>
-            <span>Week:</span><br />
-            <select class="week"></select>
+        <div class="filters">
+            <span>Week:</span>
+            <select class="WeekDate">
+                <option value="0">-- select --</option>
+            </select>
         </div>
         <div id="grid" style="width: auto"></div>
     </div>
