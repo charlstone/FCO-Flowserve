@@ -19,7 +19,7 @@ $(document).ready(function () {
            OGName: "OG China",
            IDRegion: "6",
            RegionName: "Region Americas",
-           ID: "14|5|6",
+           ID: "11|14|16",
            Total: 18.0000
        },
        {
@@ -31,96 +31,23 @@ $(document).ready(function () {
            OGName: "OG Process",
            IDRegion: "16",
            RegionName: "Region Test",
-           ID: "10|14|16",
+           ID: "3|15|4",
            Total: 20.0000
        }
     ];
 
     //local testing values 
     userPermision = [
-                { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" },
-                { "IDSite": 0, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 0, "RegionName": "" },
-                { "IDSite": 10, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "10|14|16" },
-                { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "13|13|13" }
+                { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 2, "RegionName": "a", "IsAdmin" : true },
+                { "IDSite": 3, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 4, "RegionName": "b" },
+                { "IDSite": 11, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "" },
+                { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "" }
     ];
 
     //SHAREPOINT, DEPLOY VERSION
     //FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
     //userPermision = JSON.parse($(".hdnSites").text());
 
-    function createSourceSitesDropDown() {
-        var obj;
-        for (var iFCO = 0; iFCO < FCO.length; iFCO++) {
-            obj = {};
-            obj.value = FCO[iFCO].ID;
-            obj.text = FCO[iFCO].SiteName;
-            sourceSites.push(obj);
-        }
-    }
-
-    function closest_friday() {
-        var today = new Date(), friday, day, closest;
-
-        if (today.getDay() == 5) {
-            if (today.getHours() >= 12) {
-                today.setDate(today.getDate() + 7);
-                return ((today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1)) + "/" + (today.getDate() > 9 ? (today.getDate()) : "0" + today.getDate()) + "/" + today.getFullYear();
-            }
-            else {
-                return ((today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1)) + "/" + (today.getDate() > 9 ? (today.getDate()) : "0" + today.getDate()) + "/" + today.getFullYear();
-            }
-        } else {
-            day = today.getDay();
-            friday = today.getDate() - day + (day === 0 ? -6 : 5);
-        }
-        closest = new Date(today.setDate(friday));
-
-        return ((closest.getMonth() + 1) > 9 ? (closest.getMonth() + 1) : "0" + (closest.getMonth() + 1)) + "/" + (closest.getDate() > 9 ? (closest.getDate()) : "0" + closest.getDate()) + "/" + closest.getFullYear();
-    }
-
-    function createSourceDatesDropDown() {
-        var actualDate = closest_friday();
-        var actualYear = parseInt(actualDate.split("/")[2]);
-        var actualMonth = parseInt(actualDate.split("/")[0]);
-        var actualDay = parseInt(actualDate.split("/")[1]);
-
-        sourceDates.push({ "value": actualDay + "/" + actualMonth + "/" + actualYear, "text": actualDate });
-        var x = new Date();
-        //set the actual year
-        x.setFullYear(actualYear, 01, 01);
-        //set the actual date
-        var y = new Date();
-        y.setFullYear(actualYear, actualDay, actualMonth);
-
-        var j = 1;
-        var count = 0;
-
-        //getting the all fridays in a financial year
-        var obj;
-        for (var i = 0; x < y; i += j) {
-            if (actualYear == x.getFullYear()) {
-                if (x.getDay() == 5) {
-                    obj = {}
-                    obj.value = ((x.getDate()) > 9 ? (x.getDate()) : "0" + (x.getDate())) + "/" + ((x.getMonth() + 1) > 9 ? (x.getMonth() + 1) : "0" + (x.getMonth() + 1)) + "/" + x.getFullYear();
-                    obj.text = ((x.getMonth() + 1) > 9 ? (x.getMonth() + 1) : "0" + (x.getMonth() + 1)) + "/" + ((x.getDate() ) > 9 ? (x.getDate() ) : "0" + (x.getDate() )) + "/" + x.getFullYear();
-
-                    sourceDates.push(obj);
-                    //document.write("Date : " + x.getFullYear() + "/" + x.getDate() + "/"
-                    //        + (x.getMonth() + 1) + "<br>");
-                    x = new Date(x.getTime() - (7 * 24 * 60 * 60 * 1000));
-                    j = 7;
-                    count++;
-                } else {
-                    j = 1;
-                    x = new Date(x.getTime() + (24 * 60 * 60 * 1000));
-                }
-            }
-            else {
-                break;
-            }
-        }
-        sourceDates.reverse();
-    }
 
     createSourceSitesDropDown();
     createSourceDatesDropDown();
@@ -137,51 +64,6 @@ $(document).ready(function () {
         }
     });
 
-    function mergeFCOwithPermission(permissions) {
-        var iPermission = -1;
-        var obj;
-        var arrayObj = [];
-        for (var i = 0; i < permissions.length; i++) {
-            obj = {};
-            if (permissions[i].IDSite > 0) {
-                iPermission = findIdInArray(FCO, permissions[i].ID);
-                if (iPermission > -1) {
-                    obj.FCOID = FCO[iPermission].FCOID;
-                    obj.WeekDate = FCO[iPermission].WeekDate;
-                    obj.SiteID = FCO[iPermission].SiteID;
-                    obj.IDOG = FCO[iPermission].IDOG;
-                    obj.OGName = FCO[iPermission].OGName;
-                    obj.IDRegion = FCO[iPermission].IDRegion;
-                    obj.RegionName = FCO[iPermission].RegionName;
-                    obj.ID = FCO[iPermission].ID;
-                    obj.Total = FCO[iPermission].Total;
-                }
-                else {
-                    obj.FCOID = 0;
-                    obj.WeekDate = setFridayInWeek();
-                    obj.SiteID = permissions[i].IDSite;
-                    obj.IDOG = permissions[i].IDOG;
-                    obj.OGName = permissions[i].OGName;
-                    obj.IDRegion = permissions[i].IDRegion;
-                    obj.RegionName = permissions[i].RegionName;
-                    obj.ID = permissions[i].ID;
-                }
-                arrayObj.push(obj);
-            }
-        }
-        return arrayObj;
-    };
-
-    function findIdInArray(array, id, regionID) {
-        var index = -1
-        for (var iArray = 0; iArray < array.length; iArray++) {
-            if (array[iArray].ID === id) {
-                index = iArray;
-                break;
-            }
-        }
-        return index;
-    }
 
     $(userPermision).each(function () {
         this.ID = (this.IDSite).toString() + "|" + (this.IDOG).toString() + "|" + (this.IDRegion).toString();
@@ -193,10 +75,29 @@ $(document).ready(function () {
         };
     });
 
-        if (!userPermision[0].IsAdmin) {
-            FCO = mergeFCOwithPermission(userPermision);
-            $(".filters").hide();
-        }
+    if (!userPermision[0].IsAdmin) {
+        FCO = mergeFCOwithPermission(userPermision);
+        $(".filters").hide();
+    }
+    else {
+        $(userPermision).each(function () {
+            this.ID = (this.IDSite).toString() + "|" + (this.IDOG).toString() + "|" + (this.IDRegion).toString();
+            if (this.IDSite > 0) {
+                var item = {};
+                item.FCOID = 0,
+                item.WeekDate = setFridayInWeek(),
+                item.SiteID = this.IDSite,
+                item.SiteName = this.SiteName,
+                item.IDOG = this.IDOG,
+                item.OGName = this.OGName,
+                item.IDRegion = this.IDRegion,
+                item.RegionName = this.RegionName,
+                item.ID = "4|15|2",
+                item.Total =  0
+                FCO.push(item);
+            };
+        });
+    }
 
 
     if (userPermision[0].IsAdmin) {
@@ -233,7 +134,7 @@ $(document).ready(function () {
                         },
                         editable: false
                     },
-                    Total: { type: "number", validation: { required: true, min: 1 } }
+                    Total: { type: "number", validation: { required: true, min: 1 }, defaultValue: 0 }
                 }
             },
             data: function (e) {
@@ -281,7 +182,7 @@ $(document).ready(function () {
                         },
                         editable: false
                     },
-                    Total: { type: "number", validation: { required: true, min: 1 } }
+                    Total: { type: "number", validation: { required: true, min: 1 }, defaultValue: 0 }
                 }
             },
             data: function (e) {
@@ -483,15 +384,142 @@ function dateTimeEditor(container, options) {
 }
 
 function setDropDowns() {
-    var datesList = $(".WeekDate");
-    var sitesList = $(".ID");
-    $(sourceDates).each(function (index,item) {
-        datesList.append(new Option(item.text, item.value));
-    });
-    $(sourceSites).each(function (index, item) {
-        sitesList.append(new Option(item.text, item.value));
+    var datesList = document.getElementsByClassName("WeekDate");
+    datesList = datesList.valueOf()[0];
+    $(sourceDates).each(function (index, item) {
+
+        var dates = document.createElement("option");
+        dates.value = this.value;
+        dates.text = this.text;
+        datesList.add(dates);
+        //datesList.append('<option value=' + this.value + '>' + this.text + '<option/>');
     });
 }
+
+
+
+function createSourceSitesDropDown() {
+    var obj;
+    for (var iFCO = 0; iFCO < FCO.length; iFCO++) {
+        obj = {};
+        obj.value = FCO[iFCO].ID;
+        obj.text = FCO[iFCO].SiteName;
+        sourceSites.push(obj);
+    }
+}
+
+function closest_friday() {
+    var today = new Date(), friday, day, closest;
+
+    if (today.getDay() == 5) {
+        if (today.getHours() >= 12) {
+            today.setDate(today.getDate() + 7);
+            return ((today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1)) + "/" + (today.getDate() > 9 ? (today.getDate()) : "0" + today.getDate()) + "/" + today.getFullYear();
+        }
+        else {
+            return ((today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1)) + "/" + (today.getDate() > 9 ? (today.getDate()) : "0" + today.getDate()) + "/" + today.getFullYear();
+        }
+    } else {
+        day = today.getDay();
+        friday = today.getDate() - day + (day === 0 ? -6 : 5);
+    }
+    closest = new Date(today.setDate(friday));
+
+    return ((closest.getMonth() + 1) > 9 ? (closest.getMonth() + 1) : "0" + (closest.getMonth() + 1)) + "/" + (closest.getDate() > 9 ? (closest.getDate()) : "0" + closest.getDate()) + "/" + closest.getFullYear();
+}
+
+function createSourceDatesDropDown() {
+    var actualDate = closest_friday();
+    var actualYear = parseInt(actualDate.split("/")[2]);
+    var actualMonth = parseInt(actualDate.split("/")[0]);
+    var actualDay = parseInt(actualDate.split("/")[1]);
+
+    sourceDates.push({ "value": actualDay + "/" + actualMonth + "/" + actualYear, "text": actualDate });
+    var x = new Date();
+    //set the actual year
+    x.setFullYear(actualYear, 01, 01);
+    //set the actual date
+    var y = new Date();
+    y.setFullYear(actualYear, actualDay, actualMonth);
+
+    var j = 1;
+    var count = 0;
+
+    //getting the all fridays in a financial year
+    var obj;
+    for (var i = 0; x < y; i += j) {
+        if (actualYear == x.getFullYear()) {
+            if (x.getDay() == 5) {
+                obj = {}
+                obj.value = ((x.getDate()) > 9 ? (x.getDate()) : "0" + (x.getDate())) + "/" + ((x.getMonth() + 1) > 9 ? (x.getMonth() + 1) : "0" + (x.getMonth() + 1)) + "/" + x.getFullYear();
+                obj.text = ((x.getMonth() + 1) > 9 ? (x.getMonth() + 1) : "0" + (x.getMonth() + 1)) + "/" + ((x.getDate()) > 9 ? (x.getDate()) : "0" + (x.getDate())) + "/" + x.getFullYear();
+
+                sourceDates.push(obj);
+                //document.write("Date : " + x.getFullYear() + "/" + x.getDate() + "/"
+                //        + (x.getMonth() + 1) + "<br>");
+                x = new Date(x.getTime() - (7 * 24 * 60 * 60 * 1000));
+                j = 7;
+                count++;
+            } else {
+                j = 1;
+                x = new Date(x.getTime() + (24 * 60 * 60 * 1000));
+            }
+        }
+        else {
+            break;
+        }
+    }
+    sourceDates.reverse();
+}
+
+
+function mergeFCOwithPermission(permissions) {
+    var iPermission = -1;
+    var obj;
+    var arrayObj = [];
+    for (var i = 0; i < permissions.length; i++) {
+        obj = {};
+        if (permissions[i].IDSite > 0) {
+            iPermission = findIdInArray(FCO, permissions[i].ID);
+            if (iPermission > -1) {
+                obj.FCOID = FCO[iPermission].FCOID;
+                obj.WeekDate = FCO[iPermission].WeekDate;
+                obj.SiteID = FCO[iPermission].SiteID;
+                obj.IDOG = FCO[iPermission].IDOG;
+                obj.OGName = FCO[iPermission].OGName;
+                obj.IDRegion = FCO[iPermission].IDRegion;
+                obj.RegionName = FCO[iPermission].RegionName;
+                obj.ID = FCO[iPermission].ID;
+                obj.Total = FCO[iPermission].Total;
+            }
+            else {
+                obj.FCOID = 0;
+                obj.WeekDate = setFridayInWeek();
+                obj.SiteID = permissions[i].IDSite;
+                obj.IDOG = permissions[i].IDOG;
+                obj.OGName = permissions[i].OGName;
+                obj.IDRegion = permissions[i].IDRegion;
+                obj.RegionName = permissions[i].RegionName;
+                obj.ID = permissions[i].ID;
+                obj.Total = 0;
+            }
+            arrayObj.push(obj);
+        }
+    }
+    return arrayObj;
+};
+
+function findIdInArray(array, id, regionID) {
+    var index = -1
+    for (var iArray = 0; iArray < array.length; iArray++) {
+        if (array[iArray].ID === id) {
+            index = iArray;
+            break;
+        }
+    }
+    return index;
+}
+
 
 function applyFilter(filterField, filterValue) {
 
