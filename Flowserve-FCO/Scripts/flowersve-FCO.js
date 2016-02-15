@@ -9,43 +9,43 @@ var sourceSites = [];
 var sourceDates = [];
 $(document).ready(function () {
 
-   // FCO = [
-   //{
-   //    FCOID: 1,
-   //    WeekDate: "02/02/2016",
-   //    SiteID: "14",
-   //    SiteName: "Site 14",
-   //    IDOG: "5",
-   //    OGName: "OG China",
-   //    IDRegion: "6",
-   //    RegionName: "Region Americas",
-   //    ID: "11|14|16",
-   //    Total: 18.0000
-   //},
-   //{
-   //    FCOID: 2,
-   //    WeekDate: "02/02/2016",
-   //    SiteID: "10",
-   //    SiteName: "Site 10",
-   //    IDOG: "14",
-   //    OGName: "OG Process",
-   //    IDRegion: "16",
-   //    RegionName: "Region Test",
-   //    ID: "3|15|4",
-   //    Total: 20.0000
-   //}
-   // ];
+    FCO = [
+   {
+       FCOID: 1,
+       WeekDate: "02/02/2016",
+       SiteID: "14",
+       SiteName: "Site 14",
+       IDOG: "5",
+       OGName: "OG China",
+       IDRegion: "6",
+       RegionName: "Region Americas",
+       ID: "11|14|16",
+       Total: 18.0000
+   },
+   {
+       FCOID: 2,
+       WeekDate: "02/02/2016",
+       SiteID: "10",
+       SiteName: "Site 10",
+       IDOG: "14",
+       OGName: "OG Process",
+       IDRegion: "16",
+       RegionName: "Region Test",
+       ID: "3|15|4",
+       Total: 20.0000
+   }
+    ];
 
    // //local testing values 
-   // userPermision = [
-   //         { "IDSite": 4, "SiteName": "Site test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 2, "RegionName": "Region a", "IsAdmin" : true },
-   //             { "IDSite": 3, "SiteName": "Site test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 4, "RegionName": "Region b" },
-   //             { "IDSite": 11, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "" },
-   //             { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "" }
-   // ];
+    userPermision = [
+            { "IDSite": 4, "SiteName": "Site test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 2, "RegionName": "Region a", "IsAdmin" : true },
+                { "IDSite": 3, "SiteName": "Site test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 4, "RegionName": "Region b" },
+                { "IDSite": 11, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "" },
+                { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "" }
+    ];
     //SHAREPOINT, DEPLOY VERSION
-    FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
-    userPermision = JSON.parse($(".hdnSites").text());
+    //FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
+    //userPermision = JSON.parse($(".hdnSites").text());
 
 
     createSourceSitesDropDown();
@@ -439,10 +439,10 @@ function createSourceDatesDropDown() {
     var actualMonth = parseInt(actualDate.split("/")[0]);
     var actualDay = parseInt(actualDate.split("/")[1]);
 
-    sourceDates.push({ "value": actualDay + "/" + actualMonth + "/" + actualYear, "text": actualDate });
+    //sourceDates.push({ "value": actualDay + "/" + actualMonth + "/" + actualYear, "text": actualDate });
     var x = new Date();
     //set the actual year
-    x.setFullYear(actualYear, 01, 01);
+    x.setFullYear(actualYear, x.getMonth(), x.getDate());
     //set the actual date
     var y = new Date();
     y.setFullYear(actualYear, actualDay, actualMonth);
