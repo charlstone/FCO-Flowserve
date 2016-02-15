@@ -10,40 +10,39 @@ var sourceDates = [];
 $(document).ready(function () {
 
     FCO = [
-       {
-           FCOID: 1,
-           WeekDate: "02/02/2016",
-           SiteID: "14",
-           SiteName: "Site 14",
-           IDOG: "5",
-           OGName: "OG China",
-           IDRegion: "6",
-           RegionName: "Region Americas",
-           ID: "11|14|16",
-           Total: 18.0000
-       },
-       {
-           FCOID: 2,
-           WeekDate: "02/02/2016",
-           SiteID: "10",
-           SiteName: "Site 10",
-           IDOG: "14",
-           OGName: "OG Process",
-           IDRegion: "16",
-           RegionName: "Region Test",
-           ID: "3|15|4",
-           Total: 20.0000
-       }
+   {
+       FCOID: 1,
+       WeekDate: "02/02/2016",
+       SiteID: "14",
+       SiteName: "Site 14",
+       IDOG: "5",
+       OGName: "OG China",
+       IDRegion: "6",
+       RegionName: "Region Americas",
+       ID: "11|14|16",
+       Total: 18.0000
+   },
+   {
+       FCOID: 2,
+       WeekDate: "02/02/2016",
+       SiteID: "10",
+       SiteName: "Site 10",
+       IDOG: "14",
+       OGName: "OG Process",
+       IDRegion: "16",
+       RegionName: "Region Test",
+       ID: "3|15|4",
+       Total: 20.0000
+   }
     ];
 
     //local testing values 
     userPermision = [
-                { "IDSite": 4, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 2, "RegionName": "a", "IsAdmin" : true },
-                { "IDSite": 3, "SiteName": "test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 4, "RegionName": "b" },
+            { "IDSite": 4, "SiteName": "Site test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 2, "RegionName": "Region a", "IsAdmin" : true },
+                { "IDSite": 3, "SiteName": "Site test 2", "IDOG": 15, "OGName": "OG China", "IDRegion": 4, "RegionName": "Region b" },
                 { "IDSite": 11, "SiteName": "Site Cookeville", "IDOG": 14, "OGName": "OG Process", "IDRegion": 16, "RegionName": "Region Americas", "ID": "" },
                 { "IDSite": 13, "SiteName": "Test New", "IDOG": 13, "OGName": "OG Test", "IDRegion": 13, "RegionName": "Region Test", "ID": "" }
     ];
-
     //SHAREPOINT, DEPLOY VERSION
     //FCO = $(".hdnBookings").text() != "" ? JSON.parse($(".hdnBookings").text()) : [];
     //userPermision = JSON.parse($(".hdnSites").text());
@@ -70,7 +69,7 @@ $(document).ready(function () {
         if (this.IDSite > 0) {
             var item = {};
             item.value = (this.IDSite).toString() + "|" + (this.IDOG).toString() + "|" + (this.IDRegion).toString();
-            item.text = this.SiteName;
+            item.text = this.SiteName.replace('Site ', '');;
             siteLoad.push(item);
         };
     });
@@ -84,20 +83,26 @@ $(document).ready(function () {
             this.ID = (this.IDSite).toString() + "|" + (this.IDOG).toString() + "|" + (this.IDRegion).toString();
             if (this.IDSite > 0) {
                 var item = {};
-                item.FCOID = 0,
-                item.WeekDate = setFridayInWeek(),
-                item.SiteID = this.IDSite,
-                item.SiteName = this.SiteName,
-                item.IDOG = this.IDOG,
-                item.OGName = this.OGName,
-                item.IDRegion = this.IDRegion,
-                item.RegionName = this.RegionName,
-                item.ID = "4|15|2",
-                item.Total =  0
+                item.FCOID = 0;
+                item.WeekDate = setFridayInWeek();
+                item.SiteID = this.IDSite;
+                item.SiteName = this.SiteName;
+                item.IDOG = this.IDOG;
+                item.OGName = this.OGName;
+                item.IDRegion = this.IDRegion;
+                item.RegionName = this.RegionName;
+                item.Total = 0;
+                item.ID = this.ID;
                 FCO.push(item);
             };
         });
     }
+
+    $(FCO).each(function () {
+        
+        this.OGName = this.OGName.replace('OG ','');
+        this.RegionName = this.RegionName.replace('Region ','');
+    });
 
 
     if (userPermision[0].IsAdmin) {
@@ -248,7 +253,7 @@ $(document).ready(function () {
             error: function (e) {
                 alert("Status: " + e.status + "; Error message: " + e.errorThrown);
             },
-            pageSize: 10,
+            pageSize: 50,
             batch: false,
             schema: fields,
         });
@@ -384,15 +389,11 @@ function dateTimeEditor(container, options) {
 }
 
 function setDropDowns() {
-    var datesList = document.getElementsByClassName("WeekDate");
-    datesList = datesList.valueOf()[0];
-    $(sourceDates).each(function (index, item) {
-
-        var dates = document.createElement("option");
-        dates.value = this.value;
-        dates.text = this.text;
-        datesList.add(dates);
-        //datesList.append('<option value=' + this.value + '>' + this.text + '<option/>');
+    console.log("sourcedates");
+    console.log(sourceDates.length);
+    var datesList = $(".WeekDate");
+    $(sourceDates).each(function () {
+        datesList.append(new Option(this.text, this.value));
     });
 }
 
@@ -412,7 +413,7 @@ function closest_friday() {
     var today = new Date(), friday, day, closest;
 
     if (today.getDay() == 5) {
-        if (today.getHours() >= 12) {
+        if ((today.getHours() > 23 && today.getMinutes() > 59)) {
             today.setDate(today.getDate() + 7);
             return ((today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : "0" + (today.getMonth() + 1)) + "/" + (today.getDate() > 9 ? (today.getDate()) : "0" + today.getDate()) + "/" + today.getFullYear();
         }
